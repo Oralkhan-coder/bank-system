@@ -1,0 +1,19 @@
+server:
+  port: ${PORT:8080}
+  error:
+    include-message: always
+
+spring:
+  application:
+    name: bank-system
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:bank_system_db}
+    username: ${DB_USER:postgres}
+    password: ${DB_PASS:postgres}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
