@@ -25,9 +25,21 @@ repositories {
 }
 
 dependencies {
+    //SPRING
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.security:spring-security-core'
+
+    //KEYCLOAK
+    implementation 'org.keycloak:keycloak-spring-boot-starter:13.0.1'
+    implementation 'org.keycloak:keycloak-admin-client:13.0.1'
+    implementation 'io.jsonwebtoken:jjwt:0.9.1'
+
+    //SWAGGER
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.13'
+
     compileOnly 'org.projectlombok:lombok'
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
     runtimeOnly 'org.postgresql:postgresql'

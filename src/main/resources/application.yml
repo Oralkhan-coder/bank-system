@@ -1,5 +1,5 @@
 server:
-  port: ${PORT:8080}
+  port: ${PORT:8081}
   error:
     include-message: always
 
@@ -17,3 +17,12 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+
+keycloak:
+  auth-server-url: ${KEYCLOAK_URL:http://localhost:8080}
+  client-key-password: ${KEYCLOAK_TOKEN:4MLIwgvolMNPCeEiF2VRsrpMoz61iVWr}
+  realm: ${KEYCLOAK_REALM:UPAGE}
+  resource: bank-system-client
+  public-client: false
+  use-resource-role-mappings: false
+  bearer-only: true
