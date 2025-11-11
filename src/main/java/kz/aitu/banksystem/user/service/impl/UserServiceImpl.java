@@ -3,6 +3,7 @@ package kz.aitu.banksystem.user.service.impl;
 import jakarta.transaction.Transactional;
 import kz.aitu.banksystem.core.exeption.ServiceValidationException;
 import kz.aitu.banksystem.core.model.statics.ErrorCode;
+import kz.aitu.banksystem.registration.model.dto.request.RegistrationRequest;
 import kz.aitu.banksystem.user.converter.UserConverter;
 import kz.aitu.banksystem.user.model.dto.UserViewResponse;
 import kz.aitu.banksystem.user.model.entity.User;
@@ -41,5 +42,19 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new ServiceValidationException(USER_NOT_FOUND, ErrorCode.RESOURCE_NOT_FOUND));
         repository.deleteById(user.getId());
 
+    }
+
+    @Override
+    public Long save(RegistrationRequest request, String userId, String role) {
+        User user = repository.findUserByPhoneNumberAndDeletedAtIsNull(request.getPhoneNumber()).orElse(new User());
+        user.setPhoneNumber(request.getPhoneNumber());
+        user.setRole(role);
+        user.setKeyCloakUserId(userId);
+        user.setFirstName(request.getFirstName());
+        user.setLastName(request.getLastName());
+        user.setMiddleName(request.getMiddleName());
+        user = repository.save(user);
+        user.setUsername("@user_" + user.getId());
+        return repository.save(user).getId();
     }
 }
