@@ -31,11 +31,10 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.security:spring-security-core'
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
 
     //KEYCLOAK
-    implementation 'org.keycloak:keycloak-spring-boot-starter:13.0.1'
-    implementation 'org.keycloak:keycloak-admin-client:13.0.1'
-    implementation 'io.jsonwebtoken:jjwt:0.9.1'
+    implementation 'org.keycloak:keycloak-admin-client:26.0.7'
 
     //SWAGGER
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.13'

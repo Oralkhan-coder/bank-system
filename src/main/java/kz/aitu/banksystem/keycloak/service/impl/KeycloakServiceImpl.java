@@ -1,6 +1,6 @@
 package kz.aitu.banksystem.keycloak.service.impl;
 
-import jakarta.servlet.http.HttpServletRequest;
+import jakarta.ws.rs.core.Response;
 import kz.aitu.banksystem.core.exeption.ServiceValidationException;
 import kz.aitu.banksystem.core.model.statics.ErrorCode;
 import kz.aitu.banksystem.keycloak.service.KeycloakService;
@@ -16,7 +16,6 @@ import org.keycloak.admin.client.resource.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.ws.rs.core.Response;
 import java.util.Collections;
 import java.util.List;
 
@@ -25,15 +24,12 @@ import java.util.List;
 @RequiredArgsConstructor
 public class KeycloakServiceImpl implements KeycloakService {
     private final UsersResource usersResource;
-//    private final RolesResource rolesResource;
     private final RealmResource realmResource;
     private final UserService userService;
-    @Autowired
-    HttpServletRequest request;
 
     @Override
     public UserRepresentation register(RegistrationRequest request) {
-        List<UserRepresentation> result = usersResource.search(request.getPhoneNumber(), true);
+        List<UserRepresentation> result = usersResource.search(request.getData().getPhoneNumber(), true);
         log.info("Keycloak result: {}", result.size());
 
         UserRepresentation userRepresentation = result
@@ -46,7 +42,7 @@ public class KeycloakServiceImpl implements KeycloakService {
 
     @Override
     public UserRepresentation updateUserDetails(RegistrationRequest request, UserRepresentation user) {
-        UserResource userResource = resetPassword(request.getPassword(), user.getId());
+        UserResource userResource = resetPassword(request.getData().getPassword(), user.getId());
         RoleRepresentation roles = realmResource.roles().get(request.getRole().name()).toRepresentation();
         userResource.roles().realmLevel().add(Collections.singletonList(roles));
         Long userId = userService.save(request, user.getId(), request.getRole().name());
@@ -58,11 +54,12 @@ public class KeycloakServiceImpl implements KeycloakService {
     private UserRepresentation createNewUser(RegistrationRequest request) {
         UserRepresentation user = new UserRepresentation();
         user.setEnabled(true);
-        user.setUsername(request.getPhoneNumber());
+        user.setUsername(request.getData().getPhoneNumber());
         Response response = usersResource.create(user);
 
-        if (response.getStatus() != Response.Status.CREATED.getStatusCode()) {
+        if (response.getStatus() == Response.Status.CREATED.getStatusCode()) {
             String keycloakUserId = CreatedResponseUtil.getCreatedId(response);
+            user.setId(keycloakUserId);
             log.info("Created keycloak userId: {}", keycloakUserId);
             return user;
         } else {
@@ -74,6 +71,7 @@ public class KeycloakServiceImpl implements KeycloakService {
         CredentialRepresentation credential = new CredentialRepresentation();
         credential.setTemporary(false);
         credential.setType(CredentialRepresentation.PASSWORD);
+        credential.setValue(password);
 
         UserResource userResource = usersResource.get(userId);
         userResource.resetPassword(credential);

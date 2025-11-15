@@ -1,5 +1,5 @@
 server:
-  port: ${PORT:8081}
+  port: ${PORT:8080}
   error:
     include-message: always
 
@@ -17,12 +17,16 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: ${KEYCLOAK_URL:http://localhost:8443}/auth/realms/${KEYCLOAK_REALM:UPAGE}/protocol/openid-connect/certs
 
 keycloak:
-  auth-server-url: ${KEYCLOAK_URL:http://localhost:8080}
-  client-key-password: ${KEYCLOAK_TOKEN:4MLIwgvolMNPCeEiF2VRsrpMoz61iVWr}
+  auth-server-url: ${KEYCLOAK_URL:http://localhost:8443/auth}
+  client-key-password: ${KEYCLOAK_TOKEN:e95bfe79-03c3-473e-80f0-cfed163dd13f}
   realm: ${KEYCLOAK_REALM:UPAGE}
   resource: bank-system-client
   public-client: false
-  use-resource-role-mappings: false
   bearer-only: true

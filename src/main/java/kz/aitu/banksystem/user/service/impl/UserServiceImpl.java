@@ -14,6 +14,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 import static kz.aitu.banksystem.user.util.MessageCode.USER_NOT_FOUND;
 
 @Service
@@ -36,6 +38,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public Optional<User> findByPhoneNumber(String phoneNumber) {
+        return repository.findUserByPhoneNumberAndDeletedAtIsNull(phoneNumber);
+    }
+
+    @Override
     @Transactional
     public void deleteById(Long id) {
         User user = repository.findById(id)
@@ -46,13 +53,13 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Long save(RegistrationRequest request, String userId, String role) {
-        User user = repository.findUserByPhoneNumberAndDeletedAtIsNull(request.getPhoneNumber()).orElse(new User());
-        user.setPhoneNumber(request.getPhoneNumber());
+        User user = repository.findUserByPhoneNumberAndDeletedAtIsNull(request.getData().getPhoneNumber()).orElse(new User());
+        user.setPhoneNumber(request.getData().getPhoneNumber());
         user.setRole(role);
         user.setKeyCloakUserId(userId);
-        user.setFirstName(request.getFirstName());
-        user.setLastName(request.getLastName());
-        user.setMiddleName(request.getMiddleName());
+        user.setFirstName(request.getData().getFirstName());
+        user.setLastName(request.getData().getLastName());
+        user.setMiddleName(request.getData().getMiddleName());
         user = repository.save(user);
         user.setUsername("@user_" + user.getId());
         return repository.save(user).getId();
