@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.keycloak.representations.AccessTokenResponse;
 
@@ -26,20 +28,19 @@ public class TokenClient {
     private final RestTemplate restTemplate = new RestTemplate();
 
     public AccessTokenResponse getToken(String username, String password) {
-
         String url = authUrl + "/realms/" + realm + "/protocol/openid-connect/token";
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
-        String body =
-                "client_id=" + clientId +
-                        "&client_secret=" + clientSecret +
-                        "&grant_type=password" +
-                        "&username=" + username +
-                        "&password=" + password;
+        MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
+        body.add("client_id", clientId);
+        body.add("client_secret", clientSecret);
+        body.add("grant_type", "password");
+        body.add("username", username);
+        body.add("password", password);
 
-        HttpEntity<String> request = new HttpEntity<>(body, headers);
+        HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(body, headers);
 
         ResponseEntity<AccessTokenResponse> response =
                 restTemplate.exchange(url, HttpMethod.POST, request, AccessTokenResponse.class);
