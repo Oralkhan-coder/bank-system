@@ -1,4 +1,4 @@
-package kz.aitu.banksystem.account.decorator;
+package kz.aitu.banksystem.account.decorator.base;
 
 public abstract class AccountDecorator implements Account {
 

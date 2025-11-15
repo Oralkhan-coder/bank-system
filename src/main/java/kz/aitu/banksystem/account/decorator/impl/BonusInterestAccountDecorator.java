@@ -1,4 +1,7 @@
-package kz.aitu.banksystem.account.decorator;
+package kz.aitu.banksystem.account.decorator.impl;
+
+import kz.aitu.banksystem.account.decorator.base.Account;
+import kz.aitu.banksystem.account.decorator.base.AccountDecorator;
 
 public class BonusInterestAccountDecorator extends AccountDecorator {
 
