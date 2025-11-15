@@ -1,109 +1,99 @@
 package kz.aitu.banksystem.core.configuration;
 
-import lombok.RequiredArgsConstructor;
-import org.keycloak.adapters.springsecurity.KeycloakSecurityComponents;
-import org.keycloak.adapters.springsecurity.authentication.KeycloakAuthenticationProvider;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.Customizer;
-import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.core.authority.mapping.SimpleAuthorityMapper;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
+import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.session.RegisterSessionAuthenticationStrategy;
-import org.springframework.security.web.authentication.session.SessionAuthenticationStrategy;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.util.Collection;
 import java.util.List;
 
 @Configuration
-@EnableMethodSecurity(prePostEnabled = true)
-@ComponentScan(basePackageClasses = KeycloakSecurityComponents.class)
-@RequiredArgsConstructor
+@EnableMethodSecurity
 public class SecurityConfig {
 
-    // Keycloak Authentication Provider
     @Bean
-    public KeycloakAuthenticationProvider keycloakAuthenticationProvider() {
-        KeycloakAuthenticationProvider provider = new KeycloakAuthenticationProvider();
-        provider.setGrantedAuthoritiesMapper(new SimpleAuthorityMapper());
-        return provider;
+    CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
+        config.applyPermitDefaultValues();
+        config.setAllowedOrigins(List.of("http://localhost:4200"
+                ,"https://admin.ustaz.media",
+                "https://ustaz.media",
+                "https://www.ustaz.media",
+                "https://api.ustaz.media"
+        ));
+        config.setAllowCredentials(true);// this line is important it sends only specified domain instead of *
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return source;
     }
 
-    // AuthenticationManager Bean (for @Autowired if needed)
-    @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
-        return authConfig.getAuthenticationManager();
-    }
-
-    // Session strategy for Keycloak (needed if you use session-based auth)
-    @Bean
-    public SessionAuthenticationStrategy sessionAuthenticationStrategy() {
-        return new RegisterSessionAuthenticationStrategy(new org.springframework.security.core.session.SessionRegistryImpl());
-    }
-
-    // SecurityFilterChain replaces WebSecurityConfigurerAdapter
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.disable())
-                .cors(Customizer.withDefaults())
-                .sessionManagement(session -> session.sessionCreationPolicy(org.springframework.security.config.http.SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth -> auth
-                        // Public endpoints
-                        .requestMatchers(HttpMethod.POST, SecurityConstants.SIGN_UP_WITH_PHONE_NUMBER_URL).permitAll()
-                        .requestMatchers(HttpMethod.POST, SecurityConstants.SIGN_UP_WITH_EMAIL_URL).permitAll()
-                        .requestMatchers(HttpMethod.POST, SecurityConstants.SIGN_UP_VALIDATE_URL).permitAll()
-                        .requestMatchers(SecurityConstants.PHONE_NUMBER_EXIST_URL).permitAll()
-                        .requestMatchers(SecurityConstants.PROFILE_VALIDATE_URL).permitAll()
-                        .requestMatchers(SecurityConstants.FORGOT_PASSWORD_URL).permitAll()
-                        .requestMatchers(SecurityConstants.USERNAME_EXIST_URL).permitAll()
-                        .requestMatchers(SecurityConstants.LOGIN_EXIST_URL).permitAll()
-                        .requestMatchers(SecurityConstants.EMAIL_EXIST_URL).permitAll()
-                        .requestMatchers(SecurityConstants.CODES_URL).permitAll()
-                        .requestMatchers(SecurityConstants.LOGIN_URL).permitAll()
-                        .requestMatchers("/actuator/**").permitAll()
-                        .requestMatchers("/internal/**").permitAll()
+                .csrf(AbstractHttpConfigurer::disable)
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers(SecurityConstants.OTP_URL).permitAll()
+                        .requestMatchers(SecurityConstants.SIGN_UP_WITH_PHONE_NUMBER_URL).permitAll()
                         .requestMatchers(
                                 "/v3/api-docs/**",
                                 "/swagger-ui.html",
                                 "/swagger-ui/**"
                         ).permitAll()
-                        .requestMatchers(SecurityConstants.OTP_URL).permitAll()
-                        // Role-based endpoints
-                        .requestMatchers("/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/roles/**").hasAnyRole("ADMIN", "MANAGER", "AUTHOR")
-
-                        // All other requests require authentication
                         .anyRequest().authenticated()
+                )
+                .oauth2ResourceServer(oauth2 -> oauth2
+                        .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter()))
                 );
 
         return http.build();
     }
 
-    // CORS Configuration
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of(
-                "http://localhost:4200",
-                "https://admin.ustaz.media",
-                "https://ustaz.media",
-                "https://www.ustaz.media",
-                "https://api.ustaz.media"
-        ));
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        config.setAllowedHeaders(List.of("*"));
-        config.setAllowCredentials(true);
+    @Value("${spring.security.oauth2.resourceserver.jwt.jwk-set-uri}")
+    private String jwkSetUri;
 
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", config);
-        return source;
+    @Bean
+    public JwtDecoder jwtDecoder() {
+        return NimbusJwtDecoder.withJwkSetUri(jwkSetUri).build();
+    }
+
+    private JwtAuthenticationConverter jwtAuthenticationConverter() {
+        JwtGrantedAuthoritiesConverter grantedAuthoritiesConverter = new JwtGrantedAuthoritiesConverter();
+        grantedAuthoritiesConverter.setAuthorityPrefix("ROLE_");
+        JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
+        converter.setJwtGrantedAuthoritiesConverter(jwt -> {
+            Collection<GrantedAuthority> authorities = grantedAuthoritiesConverter.convert(jwt);
+
+            Object realmAccess = jwt.getClaim("realm_access");
+            if (realmAccess instanceof java.util.Map) {
+                @SuppressWarnings("unchecked")
+                java.util.List<String> roles = (java.util.List<String>) ((java.util.Map<?, ?>) realmAccess).get("roles");
+                if (roles != null) {
+                    roles.stream()
+                            .map(r -> (GrantedAuthority) () -> "ROLE_" + r)
+                            .forEach(authorities::add);
+                }
+            }
+
+//            Object resourceAccess = jwt.getClaim("resource_access");
+//            if (resourceAccess instanceof java.util.Map) {
+//            }
+
+            return authorities;
+        });
+
+        return converter;
     }
 }

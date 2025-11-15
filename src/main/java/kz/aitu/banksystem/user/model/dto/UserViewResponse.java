@@ -1,6 +1,5 @@
 package kz.aitu.banksystem.user.model.dto;
 
-import jakarta.persistence.Column;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
