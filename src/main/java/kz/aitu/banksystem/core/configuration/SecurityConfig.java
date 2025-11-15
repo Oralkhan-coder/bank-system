@@ -27,13 +27,8 @@ public class SecurityConfig {
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         config.applyPermitDefaultValues();
-        config.setAllowedOrigins(List.of("http://localhost:4200"
-                ,"https://admin.ustaz.media",
-                "https://ustaz.media",
-                "https://www.ustaz.media",
-                "https://api.ustaz.media"
-        ));
-        config.setAllowCredentials(true);// this line is important it sends only specified domain instead of *
+        config.setAllowedOrigins(List.of("http://localhost:4200"));
+        config.setAllowCredentials(true);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
         return source;
@@ -47,6 +42,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(SecurityConstants.OTP_URL).permitAll()
                         .requestMatchers(SecurityConstants.SIGN_UP_WITH_PHONE_NUMBER_URL).permitAll()
+                        .requestMatchers(SecurityConstants.LOGIN_WITH_PHONE_NUMBER_URL).permitAll()
                         .requestMatchers(
                                 "/v3/api-docs/**",
                                 "/swagger-ui.html",
