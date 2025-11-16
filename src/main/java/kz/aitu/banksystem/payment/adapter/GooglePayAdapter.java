@@ -1,27 +1,23 @@
 package kz.aitu.banksystem.payment.adapter;
 
-import java.math.BigDecimal;
-
-import kz.aitu.banksystem.payment.service.BankPaymentService;
-import kz.aitu.banksystem.payment.service.impl.CurrencyConversionService;
-import kz.aitu.banksystem.payment.service.impl.GooglePayClient;
+import kz.aitu.banksystem.payment.client.GooglePayClient;
+import kz.aitu.banksystem.payment.service.PaymentService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
-public class GooglePayAdapter implements BankPaymentService {
+@Slf4j
+public class GooglePayAdapter implements GooglePayClient  {
+    private final PaymentService paymentService;
 
-    private final GooglePayClient googlePayClient;
-    private final CurrencyConversionService currencyConversionService;
 
-    /**
-     * Bank System calls this method with any supported currency (e.g. KZT).
-     * Adapter converts it to USD and delegates to GooglePayClient.sendPayment.
-     */
     @Override
-    public void processPayment(BigDecimal amount, String currency) {
-        BigDecimal amountInUsd = currencyConversionService.convertToUsd(amount, currency);
-        googlePayClient.sendPayment(amountInUsd);
+    @Transactional
+    public void payByGoogle(Double amount, String phoneNumber) {
+        log.info("Google Payment {}", amount);
+        paymentService.pay(amount, phoneNumber);
     }
 }

@@ -1,13 +1,12 @@
 package kz.aitu.banksystem.notification.visitor;
 
-import kz.aitu.banksystem.account.model.entity.AccountEntity;
-import kz.aitu.banksystem.credit.model.entity.CreditEntity;
-import kz.aitu.banksystem.deposit.model.entity.DepositEntity;
-
+import kz.aitu.banksystem.notification.visitable.impl.EmailNotification;
+import kz.aitu.banksystem.notification.visitable.impl.PushNotification;
+import kz.aitu.banksystem.notification.visitable.impl.TelegramNotification;
 
 public interface NotificationVisitor {
 
-    void visit(AccountEntity account);
-    void visit(CreditEntity credit);
-    void visit(DepositEntity deposit);
+    void notify(EmailNotification emailNotification);
+    void notify(PushNotification pushNotification);
+    void notify(TelegramNotification telegramNotification);
 }

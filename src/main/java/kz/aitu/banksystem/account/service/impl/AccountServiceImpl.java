@@ -1,16 +1,21 @@
-package kz.aitu.banksystem.account.service;
+package kz.aitu.banksystem.account.service.impl;
 
 import kz.aitu.banksystem.account.converter.AccountConverterImpl;
 import kz.aitu.banksystem.account.factory.AccountFactory;
 import kz.aitu.banksystem.account.model.dto.AccountViewResponseDto;
 import kz.aitu.banksystem.account.model.entity.AccountEntity;
 import kz.aitu.banksystem.account.repository.AccountRepository;
+import kz.aitu.banksystem.account.service.AccountService;
 import kz.aitu.banksystem.account.strategy.CurrencyConversionStrategy;
+import kz.aitu.banksystem.core.exeption.ServiceValidationException;
+import kz.aitu.banksystem.core.model.statics.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import jakarta.persistence.EntityNotFoundException;
 import java.util.List;
+
+import static kz.aitu.banksystem.account.util.MessageCodes.INVALID_PHONE_NUMBER;
 
 @Service
 @RequiredArgsConstructor
@@ -64,5 +69,13 @@ public class AccountServiceImpl implements AccountService {
             throw new EntityNotFoundException("Account not found");
         }
         accountRepository.deleteById(id);
+    }
+
+    @Override
+    public AccountEntity findByAccountNumber(String number) {
+        if (number == null || number.isEmpty()) {
+            throw new ServiceValidationException(INVALID_PHONE_NUMBER, ErrorCode.INVALID_ARGUMENT);
+        }
+        return accountRepository.findByAccountNumber(number);
     }
 }

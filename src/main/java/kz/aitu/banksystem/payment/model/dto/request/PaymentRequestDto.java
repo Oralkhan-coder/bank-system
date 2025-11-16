@@ -6,7 +6,6 @@ import lombok.Data;
 
 @Data
 public class PaymentRequestDto {
-
-    private BigDecimal amount;
-    private String currency;
+    private String accountNumber;
+    private Double amount;
 }

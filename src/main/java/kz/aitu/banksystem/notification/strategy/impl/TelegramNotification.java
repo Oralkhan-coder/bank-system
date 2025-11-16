@@ -7,6 +7,8 @@ import org.springframework.stereotype.Component;
 @Component
 @Slf4j
 public class TelegramNotification implements NotificationStrategy {
+    p
+
     @Override
     public void sendOtp(String receiver, String code) {
         System.out.println("Sending Otp by telegram");
