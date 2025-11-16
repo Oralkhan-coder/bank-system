@@ -1,6 +1,7 @@
 package kz.aitu.banksystem.account.service;
 
 import kz.aitu.banksystem.account.model.dto.AccountViewResponseDto;
+import kz.aitu.banksystem.account.model.entity.AccountEntity;
 
 import java.util.List;
 
@@ -16,4 +17,6 @@ public interface AccountService {
     List<AccountViewResponseDto> findAll();
 
     void deleteById(Long id);
+
+    AccountEntity findByAccountNumber(String number);
 }
